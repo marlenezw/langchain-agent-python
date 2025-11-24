@@ -423,7 +423,6 @@ class DatabaseGenerator:
                     location = 'Online'
                 else:
                     # City name is the location
-                    location = location
                 
                 await self.conn.execute(
                     """
