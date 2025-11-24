@@ -94,10 +94,10 @@ def generate_products_json():
     print(f"Output file: {output_file.name}")
     print(f"File size: {file_size_mb:.2f} MB")
     
-    if file_size_mb > 50:
-        print("⚠️  Warning: File size exceeds GitHub's 50 MB recommendation")
-    elif file_size_mb > 100:
+    if file_size_mb > 100:
         print("❌ Error: File size exceeds GitHub's 100 MB limit")
+    elif file_size_mb > 50:
+        print("⚠️  Warning: File size exceeds GitHub's 50 MB recommendation")
     else:
         print("✅ File size is safe for GitHub")
     
