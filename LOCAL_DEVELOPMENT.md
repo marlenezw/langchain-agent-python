@@ -13,10 +13,10 @@ Deploy to Azure first, then use the cloud database locally:
 azd up
 
 # 2. Get database connection string
-azd env get-values | grep POSTGRES
+azd env get-values > .env.local
 
-# 3. Update .env.local with the Azure PostgreSQL URL
-echo "POSTGRES_URL=<connection-string-from-above>" >> .env.local
+# 3. Add local MCP server URL
+echo "MCP_SERVER_URL=http://localhost:8000" >> .env.local
 
 # 4. Run locally (see below)
 ```
@@ -29,13 +29,22 @@ Run everything locally including the database:
 # 1. Start PostgreSQL with pgvector
 docker-compose up -d
 
-# 2. Initialize database
+# 2. Configure environment
+cp .env.example .env.local
+# Edit .env.local with your Azure OpenAI credentials
+
+# 3. Initialize database
 cd data
-export POSTGRES_URL='postgresql://postgres:postgres@localhost:5432/zava'
+source ../.env.local
 python generate_database.py
 
-# 3. Run MCP server and agent (see below)
+# 4. Regenerate embeddings (IMPORTANT - see note below)
+python regenerate_embeddings.py
+
+# 5. Run MCP server and agent (see below)
 ```
+
+> **⚠️ Important:** The pre-generated embeddings in `products_pregenerated.json` were created with a specific embedding model. If your Azure OpenAI deployment uses a different embedding model (e.g., `text-embedding-ada-002` vs `text-embedding-3-small`), you MUST run `regenerate_embeddings.py` after initializing the database. Otherwise, semantic product search will not work correctly.
 
 ## Prerequisites
 
@@ -61,8 +70,8 @@ cp .env.example .env.local
 ```bash
 # Azure OpenAI (required - uses cloud instance)
 AZURE_OPENAI_ENDPOINT=https://your-openai.openai.azure.com/
-AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
-AZURE_OPENAI_EMBEDDING_DEPLOYMENT=text-embedding-3-small
+AZURE_OPENAI_DEPLOYMENT=gpt-4o-mini
+AZURE_OPENAI_EMBEDDING_DEPLOYMENT=text-embedding-ada-002  # or text-embedding-3-small
 AZURE_TENANT_ID=your-tenant-id
 
 # MCP Server (local)
@@ -75,6 +84,8 @@ POSTGRES_URL=postgresql://postgres:postgres@localhost:5432/zava
 # Option B: Azure PostgreSQL (from azd deployment)
 POSTGRES_URL=postgresql://pgadmin:password@psql-xxx.postgres.database.azure.com:5432/zava?sslmode=require
 ```
+
+> **Note:** The `AZURE_OPENAI_EMBEDDING_DEPLOYMENT` must match the embedding model deployed in your Azure OpenAI resource. Common values are `text-embedding-ada-002` or `text-embedding-3-small`. After changing this, run `data/regenerate_embeddings.py` to update the database.
 
 ### 2. Start Local PostgreSQL (Option 2)
 
@@ -120,34 +131,37 @@ docker ps | grep zava-postgres
 
 ### 3. Initialize Database
 
-Download data files and populate the database:
+The repository includes pre-generated data files, so no download is needed:
 
 ```bash
 cd data
 
-# Download data files from Microsoft repository (~2-3 GB)
-curl -L https://raw.githubusercontent.com/microsoft/aitour26-WRK540-unlock-your-agents-potential-with-model-context-protocol/main/data/database/product_data.json -o product_data.json
-curl -L https://raw.githubusercontent.com/microsoft/aitour26-WRK540-unlock-your-agents-potential-with-model-context-protocol/main/data/database/reference_data.json -o reference_data.json
-
 # Set database URL
 export POSTGRES_URL='postgresql://postgres:postgres@localhost:5432/zava'
 
-# Generate database schema and populate data
+# Generate database schema and load pre-generated data
 python generate_database.py
 ```
+
+**Pre-generated data included:**
+- `products_pregenerated.json` - 424 products with pre-computed embeddings
+- `customers_pregenerated.json` - 500 sample customers  
+- `orders_pregenerated.json` - 2000 sample orders
 
 **Expected output:**
 ```
 ✅ Connected to PostgreSQL
 ✅ Created schema 'retail'
 ✅ Enabled pgvector extension
-✅ Created products table
-✅ Created categories table
-...
-✅ Created 10 tables
-✅ Inserted 500 products
-✅ Created vector indexes
-✅ Database generation complete!
+✅ Loading products from pre-generated data...
+✅ Categories and types loaded
+✅ Loaded 424 products with embeddings from JSON
+✅ Created 8 stores
+✅ Loaded 500 customers from JSON
+✅ Loaded 2000 orders with items from JSON
+✅ Generated inventory records
+✅ Indexes created successfully
+✅ Database generation completed successfully!
 ```
 
 ### 4. Install Dependencies
@@ -169,30 +183,25 @@ pip install -r requirements.txt
 ```bash
 cd mcp
 source ../.env.local  # Load environment variables
-python mcp_server.py
+python app.py
 ```
 
 **Expected output:**
 ```
-🚀 Starting FastMCP Server
-  Environment: local
-  PostgreSQL: ✅ Configured
-  Azure OpenAI: ✅ Configured
-  Port: 8000
-
-✅ Database connected (PostgreSQL 17)
-✅ Semantic search initialized
-📡 MCP Server running at http://0.0.0.0:8000
+🚀 Starting MCP server initialization...
+✅ PostgreSQL connection pool established
+✅ Database provider connected
+✅ Azure OpenAI async client initialized
+✅ Embedding provider initialized
+✅ MCP server ready
+INFO: Uvicorn running on http://0.0.0.0:8000
 ```
 
 **Test the server:**
 
 ```bash
-# Health check
-curl http://localhost:8000/health
-
-# List available tools
-curl http://localhost:8000/tools | jq
+# Check MCP endpoint
+curl http://localhost:8000/mcp/
 ```
 
 ### 6. Run Agent
@@ -202,8 +211,19 @@ curl http://localhost:8000/tools | jq
 ```bash
 cd agent
 source ../.env.local  # Load environment variables
-python agent.py
+PORT=8001 python app.py
 ```
+
+**Expected output:**
+```
+INFO:__main__:🔧 Running in LOCAL mode - using langchain-mcp-adapters for MCP tools
+INFO:     Started server process [xxxxx]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8001
+```
+
+**Open browser to:** http://localhost:8001
 
 **Test queries:**
 
@@ -228,9 +248,9 @@ python agent.py
 │                    Your Local Machine                        │
 │                                                              │
 │  ┌─────────────────┐      ┌──────────────────┐             │
-│  │  agent.py       │──────│  mcp_server.py   │             │
-│  │  (Terminal 2)   │ HTTP │  (Terminal 1)    │             │
-│  │  Port: stdio    │◄─────│  Port: 8000      │             │
+│  │  Agent          │──────│  MCP Server      │             │
+│  │  agent/app.py   │ HTTP │  mcp/app.py      │             │
+│  │  Port: 8001     │◄─────│  Port: 8000      │             │
 │  └────────┬────────┘      └────────┬─────────┘             │
 │           │                         │                        │
 │           │ Entra ID               │                        │
@@ -239,7 +259,7 @@ python agent.py
 │  │   Azure Cloud   │      │  Docker (Local)  │             │
 │  │                 │      │                  │             │
 │  │  Azure OpenAI   │      │  PostgreSQL 17   │             │
-│  │  - GPT-5-mini   │      │  - pgvector      │             │
+│  │  - GPT-4o-mini  │      │  - pgvector      │             │
 │  │  - Embeddings   │      │  - Port 5432     │             │
 │  └─────────────────┘      └──────────────────┘             │
 │                                                              │
@@ -285,7 +305,7 @@ docker-compose up -d
 ```bash
 # Load environment variables before running
 source .env.local
-python mcp_server.py
+python app.py
 ```
 
 **❌ "Failed to initialize embeddings"**
@@ -303,7 +323,7 @@ python -c "from azure.identity import DefaultAzureCredential; print(DefaultAzure
 **❌ "MCP server not accessible"**
 ```bash
 # Ensure MCP server is running (Terminal 1)
-curl http://localhost:8000/health
+curl http://localhost:8000/mcp
 
 # Verify MCP_SERVER_URL in .env.local
 cat .env.local | grep MCP_SERVER_URL
@@ -318,6 +338,35 @@ az login
 az account show --query tenantId -o tsv
 
 # Update AZURE_TENANT_ID in .env.local
+```
+
+### Semantic Search Issues
+
+**❌ "Semantic search returns no results" or "Product search not finding expected products"**
+
+This usually means the embeddings in the database were generated with a different model than what's being used for queries.
+
+```bash
+# Regenerate embeddings with your current Azure OpenAI embedding model
+cd data
+source ../.env.local
+python regenerate_embeddings.py
+```
+
+The script will:
+1. Connect to your Azure OpenAI embedding deployment
+2. Regenerate embeddings for all 424 products
+3. Update the database
+4. Verify the fix by testing a search for "hammers"
+
+**Expected output after regeneration:**
+```
+✅ Successfully regenerated 424 embeddings!
+Top 10 products by similarity to 'hammers':
+  0.8475 - Finishing Hammer 13oz
+  0.8454 - Ball Peen Hammer 12oz
+  0.8420 - Professional Claw Hammer 16oz
+  ...
 ```
 
 ## Database Management
@@ -399,6 +448,22 @@ ANALYZE retail.orders;
 
 ## VS Code Integration
 
+### Pre-configured Tasks
+
+The project includes pre-configured VS Code tasks in `.vscode/tasks.json`. Press `Cmd+Shift+P` (Mac) or `Ctrl+Shift+P` (Windows/Linux), then select "Tasks: Run Task" to see:
+
+| Task | Description |
+|------|-------------|
+| **Start MCP Server** | Runs `python mcp/app.py` on port 8000 |
+| **Start Agent** | Runs `python agent/app.py` on port 8001 |
+| **Start PostgreSQL (Docker)** | Runs `docker-compose up -d` |
+| **Stop PostgreSQL (Docker)** | Runs `docker-compose down` |
+| **Initialize Database** | Runs `python data/generate_database.py` |
+| **Azure Login** | Runs `az login && azd auth login` |
+| **Deploy to Azure** | Runs `azd up` |
+
+### Debugging
+
 Create `.vscode/launch.json` for debugging:
 
 ```json
@@ -409,7 +474,7 @@ Create `.vscode/launch.json` for debugging:
       "name": "MCP Server",
       "type": "debugpy",
       "request": "launch",
-      "program": "${workspaceFolder}/mcp/mcp_server.py",
+      "program": "${workspaceFolder}/mcp/app.py",
       "console": "integratedTerminal",
       "envFile": "${workspaceFolder}/.env.local"
     },
@@ -417,9 +482,12 @@ Create `.vscode/launch.json` for debugging:
       "name": "Agent",
       "type": "debugpy",
       "request": "launch",
-      "program": "${workspaceFolder}/agent/agent.py",
+      "program": "${workspaceFolder}/agent/app.py",
       "console": "integratedTerminal",
-      "envFile": "${workspaceFolder}/.env.local"
+      "envFile": "${workspaceFolder}/.env.local",
+      "env": {
+        "PORT": "8001"
+      }
     }
   ]
 }
@@ -491,13 +559,15 @@ Once local development is working:
 | Aspect | Local | Production |
 |--------|-------|------------|
 | **PostgreSQL** | Docker (localhost:5432) | Azure Flexible Server |
-| **Azure OpenAI** | Cloud (with Entra ID) | Cloud (with Managed Identity) |
+| **Azure OpenAI** | Cloud (with Entra ID via Azure CLI) | Cloud (with Managed Identity) |
 | **MCP Server** | Python process (port 8000) | Container App |
-| **Agent** | Python process (stdio) | Container App |
+| **Agent** | Python process (port 8001) | Container App |
+| **MCP Integration** | langchain-mcp-adapters | Azure Functions MCP extension |
 | **Networking** | localhost | Azure Virtual Network |
 | **SSL** | Optional | Required (sslmode=require) |
 | **Monitoring** | Console logs | Application Insights |
 | **Authentication** | Azure CLI login | Managed Identity |
+| **Embeddings** | May need regeneration | Pre-configured |
 
 ## Resources
 
