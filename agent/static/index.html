@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,12 +8,17 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         :root {
-            --primary-color: #ea580c; /* Orange-600 */
-            --primary-dark: #c2410c; /* Orange-700 */
-            --bg-color: #f3f4f6; /* Gray-100 */
+            --primary-color: #ea580c;
+            /* Orange-600 */
+            --primary-dark: #c2410c;
+            /* Orange-700 */
+            --bg-color: #f3f4f6;
+            /* Gray-100 */
             --chat-bg: #ffffff;
-            --text-primary: #1f2937; /* Gray-800 */
-            --text-secondary: #4b5563; /* Gray-600 */
+            --text-primary: #1f2937;
+            /* Gray-800 */
+            --text-secondary: #4b5563;
+            /* Gray-600 */
         }
 
         * {
@@ -20,7 +26,7 @@
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             background-color: var(--bg-color);
@@ -158,7 +164,7 @@
             font-size: 12px;
             color: var(--text-secondary);
         }
-        
+
         .chat-container {
             background: var(--chat-bg);
             border-radius: 16px;
@@ -169,7 +175,7 @@
             overflow: hidden;
             border: 1px solid #e5e7eb;
         }
-        
+
         .chat-header {
             background: white;
             color: var(--text-primary);
@@ -179,14 +185,14 @@
             align-items: center;
             gap: 16px;
         }
-        
+
         .chat-header h1 {
             font-size: 20px;
             font-weight: 700;
             color: var(--text-primary);
             margin-bottom: 2px;
         }
-        
+
         .chat-header p {
             font-size: 14px;
             color: var(--text-secondary);
@@ -198,62 +204,62 @@
             padding: 8px;
             border-radius: 12px;
         }
-        
+
         .chat-messages {
             flex: 1;
             overflow-y: auto;
             padding: 24px;
             background: #f9fafb;
         }
-        
+
         .message {
             margin-bottom: 16px;
             display: flex;
             align-items: flex-start;
         }
-        
+
         .message.user {
             justify-content: flex-end;
         }
-        
+
         .message-bubble {
             max-width: 70%;
             padding: 12px 16px;
             border-radius: 18px;
             word-wrap: break-word;
         }
-        
+
         .message.user .message-bubble {
             background: var(--primary-color);
             color: white;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
         }
-        
+
         .message.assistant .message-bubble {
             background: white;
             color: var(--text-primary);
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
             border: 1px solid #e5e7eb;
         }
-        
+
         .message.error .message-bubble {
             background: #fee;
             color: #c33;
             border: 1px solid #fcc;
         }
-        
+
         .chat-input-container {
             padding: 20px;
             background: white;
             border-top: 1px solid #eee;
             border-radius: 0 0 12px 12px;
         }
-        
+
         .chat-input-form {
             display: flex;
             gap: 10px;
         }
-        
+
         .chat-input {
             flex: 1;
             padding: 12px 16px;
@@ -263,12 +269,12 @@
             outline: none;
             transition: border-color 0.3s;
         }
-        
+
         .chat-input:focus {
             border-color: var(--primary-color);
             box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.1);
         }
-        
+
         .send-button {
             padding: 12px 24px;
             background: var(--primary-color);
@@ -280,31 +286,31 @@
             cursor: pointer;
             transition: all 0.2s;
         }
-        
+
         .send-button:hover {
             background: var(--primary-dark);
             transform: translateY(-1px);
         }
-        
+
         .send-button:disabled {
             opacity: 0.5;
             cursor: not-allowed;
             transform: none;
         }
-        
+
         .typing-indicator {
             display: none;
             padding: 12px 16px;
             background: white;
             border-radius: 18px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             width: fit-content;
         }
-        
+
         .typing-indicator.active {
             display: block;
         }
-        
+
         .typing-indicator span {
             display: inline-block;
             width: 8px;
@@ -314,19 +320,23 @@
             margin: 0 2px;
             animation: typing 1.4s infinite;
         }
-        
+
         .typing-indicator span:nth-child(2) {
             animation-delay: 0.2s;
         }
-        
+
         .typing-indicator span:nth-child(3) {
             animation-delay: 0.4s;
         }
-        
+
         @keyframes typing {
-            0%, 60%, 100% {
+
+            0%,
+            60%,
+            100% {
                 transform: translateY(0);
             }
+
             30% {
                 transform: translateY(-10px);
             }
@@ -339,19 +349,20 @@
             margin: 10px 0;
             font-size: 14px;
         }
-        
-        .message-bubble th, .message-bubble td {
+
+        .message-bubble th,
+        .message-bubble td {
             border: 1px solid #e5e7eb;
             padding: 8px 12px;
             text-align: left;
         }
-        
+
         .message-bubble th {
             background-color: #f9fafb;
             font-weight: 600;
             color: var(--text-primary);
         }
-        
+
         .message-bubble tr:nth-child(even) {
             background-color: #f9fafb;
         }
@@ -360,12 +371,14 @@
             margin-bottom: 8px;
         }
 
-        .message-bubble ul, .message-bubble ol {
+        .message-bubble ul,
+        .message-bubble ol {
             margin-left: 20px;
             margin-bottom: 8px;
         }
     </style>
 </head>
+
 <body>
     <div class="app-container">
         <div class="sidebar">
@@ -380,35 +393,31 @@
         </div>
 
         <div class="chat-container">
-        <div class="chat-header">
-            <div class="header-icon">🛠️</div>
-            <div>
-                <h1>Zava Sales Analyst</h1>
-                <p>Your DIY store intelligence companion</p>
-            </div>
-        </div>
-        
-        <div class="chat-messages" id="chatMessages">
-            <div class="message assistant">
-                <div class="message-bubble">
-                    <p>👋 Welcome to Zava Sales Analyst! I can help you explore sales data, search our DIY product catalog, and analyze performance across our Washington stores. What would you like to know?</p>
+            <div class="chat-header">
+                <div class="header-icon">🛠️</div>
+                <div>
+                    <h1>Zava Sales Analyst</h1>
+                    <p>Your DIY store intelligence companion</p>
                 </div>
             </div>
-        </div>
-        
-        <div class="chat-input-container">
-            <form class="chat-input-form" id="chatForm">
-                <input 
-                    type="text" 
-                    class="chat-input" 
-                    id="messageInput" 
-                    placeholder="Type your message..."
-                    autocomplete="off"
-                    required
-                />
-                <button type="submit" class="send-button" id="sendButton">Send</button>
-            </form>
-        </div>
+
+            <div class="chat-messages" id="chatMessages">
+                <div class="message assistant">
+                    <div class="message-bubble">
+                        <p>👋 Welcome to Zava Sales Analyst! I can help you explore sales data, search our DIY product
+                            catalog, and analyze performance across our Washington stores. What would you like to know?
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chat-input-container">
+                <form class="chat-input-form" id="chatForm">
+                    <input type="text" class="chat-input" id="messageInput" placeholder="Type your message..."
+                        autocomplete="off" required />
+                    <button type="submit" class="send-button" id="sendButton">Send</button>
+                </form>
+            </div>
         </div>
     </div>
 
@@ -417,55 +426,55 @@
         const chatForm = document.getElementById('chatForm');
         const messageInput = document.getElementById('messageInput');
         const sendButton = document.getElementById('sendButton');
-        
+
         let conversationHistory = [];
-        
+
         function addMessage(role, content) {
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${role}`;
-            
+
             const bubbleDiv = document.createElement('div');
             bubbleDiv.className = 'message-bubble';
             bubbleDiv.innerHTML = marked.parse(content);
-            
+
             messageDiv.appendChild(bubbleDiv);
             chatMessages.appendChild(messageDiv);
-            
+
             chatMessages.scrollTop = chatMessages.scrollHeight;
-            
+
             return messageDiv;
         }
-        
+
         function showTyping() {
             const typingDiv = document.createElement('div');
             typingDiv.className = 'message assistant';
             typingDiv.id = 'typingIndicator';
-            
+
             const indicator = document.createElement('div');
             indicator.className = 'typing-indicator active';
             indicator.innerHTML = '<span></span><span></span><span></span>';
-            
+
             typingDiv.appendChild(indicator);
             chatMessages.appendChild(typingDiv);
             chatMessages.scrollTop = chatMessages.scrollHeight;
         }
-        
+
         function hideTyping() {
             const typing = document.getElementById('typingIndicator');
             if (typing) {
                 typing.remove();
             }
         }
-        
+
         async function sendMessage(message) {
             addMessage('user', message);
             conversationHistory.push({ role: 'user', content: message });
             updateCurrentChat(); // Save after user message
-            
+
             messageInput.value = '';
             sendButton.disabled = true;
             showTyping();
-            
+
             try {
                 const response = await fetch('/api/chat', {
                     method: 'POST',
@@ -477,12 +486,12 @@
                         history: conversationHistory.slice(0, -1) // Send history without current message
                     })
                 });
-                
+
                 if (!response.ok) {
                     hideTyping();
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
-                
+
                 // Handle streaming response
                 const reader = response.body.getReader();
                 const decoder = new TextDecoder();
@@ -491,76 +500,129 @@
                 let assistantBubble = null;
                 let streamedContent = '';
                 let imageElements = [];
-                
+
                 while (true) {
                     const { done, value } = await reader.read();
-                    
+
                     if (done) break;
-                    
+
                     buffer += decoder.decode(value, { stream: true });
                     const lines = buffer.split('\n');
                     buffer = lines.pop(); // Keep incomplete line in buffer
-                    
+
                     for (const line of lines) {
                         if (line.trim()) {
                             try {
                                 const data = JSON.parse(line);
-                                
+
+                                if (data.status !== undefined) {
+                                    // Status update (e.g., "Querying database...")
+                                    if (data.status) {
+                                        // Show status message
+                                        hideTyping();
+                                        if (!assistantMessageDiv) {
+                                            assistantMessageDiv = document.createElement('div');
+                                            assistantMessageDiv.className = 'message assistant';
+
+                                            assistantBubble = document.createElement('div');
+                                            assistantBubble.className = 'message-bubble';
+
+                                            assistantMessageDiv.appendChild(assistantBubble);
+                                            chatMessages.appendChild(assistantMessageDiv);
+                                        }
+                                        assistantBubble.innerHTML = `<p style="color: #6b7280; font-style: italic;">${data.status}</p>`;
+                                        chatMessages.scrollTop = chatMessages.scrollHeight;
+                                    }
+                                    // If status is empty, the actual response is coming
+                                }
+
                                 if (data.chunk) {
                                     // Create message div if it doesn't exist
                                     if (!assistantMessageDiv) {
                                         hideTyping(); // Hide typing indicator only when first chunk arrives
                                         assistantMessageDiv = document.createElement('div');
                                         assistantMessageDiv.className = 'message assistant';
-                                        
+
                                         assistantBubble = document.createElement('div');
                                         assistantBubble.className = 'message-bubble';
-                                        
+
                                         assistantMessageDiv.appendChild(assistantBubble);
                                         chatMessages.appendChild(assistantMessageDiv);
                                     }
-                                    
+
                                     // Accumulate streamed content
                                     streamedContent += data.chunk;
-                                    
+
+                                    // Clear any lingering status message when real content arrives
+                                    const statusP = assistantBubble.querySelector('p[style*="font-style: italic"]');
+                                    if (statusP) {
+                                        statusP.remove();
+                                    }
+
                                     // Update the message display with accumulated content
-                                    assistantBubble.innerHTML = marked.parse(streamedContent);
+                                    // Preserve any images that were already added
+                                    const textContainer = assistantBubble.querySelector('.text-content') || (() => {
+                                        const div = document.createElement('div');
+                                        div.className = 'text-content';
+                                        // Insert text container before any images
+                                        if (assistantBubble.firstChild) {
+                                            assistantBubble.insertBefore(div, assistantBubble.firstChild);
+                                        } else {
+                                            assistantBubble.appendChild(div);
+                                        }
+                                        return div;
+                                    })();
+                                    textContainer.innerHTML = marked.parse(streamedContent);
                                     chatMessages.scrollTop = chatMessages.scrollHeight;
                                 }
-                                
+
                                 if (data.image) {
                                     // Create message div if it doesn't exist
                                     if (!assistantMessageDiv) {
                                         hideTyping();
                                         assistantMessageDiv = document.createElement('div');
                                         assistantMessageDiv.className = 'message assistant';
-                                        
+
                                         assistantBubble = document.createElement('div');
                                         assistantBubble.className = 'message-bubble';
-                                        
+
                                         assistantMessageDiv.appendChild(assistantBubble);
                                         chatMessages.appendChild(assistantMessageDiv);
                                     }
-                                    
+
+                                    // Clear any status message before showing image
+                                    const statusP = assistantBubble.querySelector('p[style*="font-style: italic"]');
+                                    if (statusP) {
+                                        statusP.remove();
+                                    }
+
                                     // Create and append image element
                                     const img = document.createElement('img');
                                     img.src = `data:image/${data.image.format};base64,${data.image.base64}`;
                                     img.style.maxWidth = '100%';
                                     img.style.borderRadius = '8px';
                                     img.style.marginTop = '10px';
+                                    img.style.display = 'block';
                                     assistantBubble.appendChild(img);
                                     imageElements.push(img);
                                     chatMessages.scrollTop = chatMessages.scrollHeight;
                                 }
-                                
+
                                 if (data.done && data.message) {
                                     // Final message received - use it for history
                                     conversationHistory.push({ role: 'assistant', content: data.message });
                                     updateCurrentChat(); // Save after assistant message
-                                    
+
                                     // Update display with final message if different from streamed
+                                    // but preserve any images
                                     if (data.message !== streamedContent && assistantBubble) {
-                                        assistantBubble.innerHTML = marked.parse(data.message);
+                                        const textContainer = assistantBubble.querySelector('.text-content');
+                                        if (textContainer) {
+                                            textContainer.innerHTML = marked.parse(data.message);
+                                        } else if (!assistantBubble.querySelector('img')) {
+                                            // Only replace if no images
+                                            assistantBubble.innerHTML = marked.parse(data.message);
+                                        }
                                     }
                                 }
                             } catch (e) {
@@ -569,7 +631,7 @@
                         }
                     }
                 }
-                
+
             } catch (error) {
                 hideTyping();
                 console.error('Error:', error);
@@ -579,7 +641,7 @@
                 messageInput.focus();
             }
         }
-        
+
         chatForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const message = messageInput.value.trim();
@@ -587,7 +649,7 @@
                 await sendMessage(message);
             }
         });
-        
+
         // Chat session management
         let currentChatId = null;
         let allChats = {};
@@ -600,7 +662,7 @@
                 // Load the most recent chat or create a new one
                 const chatIds = Object.keys(allChats);
                 if (chatIds.length > 0) {
-                    const mostRecent = chatIds.sort((a, b) => 
+                    const mostRecent = chatIds.sort((a, b) =>
                         allChats[b].timestamp - allChats[a].timestamp
                     )[0];
                     loadChat(mostRecent);
@@ -650,12 +712,12 @@
             // Skip confirm dialog - just delete directly
             console.log('Deleting chat:', chatId);
             delete allChats[chatId];
-            
+
             // If we deleted the current chat, switch to another or create new
             if (chatId === currentChatId) {
                 const remainingChats = Object.keys(allChats);
                 if (remainingChats.length > 0) {
-                    const mostRecent = remainingChats.sort((a, b) => 
+                    const mostRecent = remainingChats.sort((a, b) =>
                         allChats[b].timestamp - allChats[a].timestamp
                     )[0];
                     loadChat(mostRecent);
@@ -663,7 +725,7 @@
                     createNewChat();
                 }
             }
-            
+
             saveChatSessions();
             renderChatHistory();
             console.log('Remaining chats:', Object.keys(allChats));
@@ -679,7 +741,7 @@
             if (currentChatId && allChats[currentChatId]) {
                 allChats[currentChatId].messages = conversationHistory;
                 allChats[currentChatId].timestamp = Date.now();
-                
+
                 // Auto-generate title from first user message
                 if (allChats[currentChatId].title === 'New Chat' && conversationHistory.length > 0) {
                     const firstUserMsg = conversationHistory.find(msg => msg.role === 'user');
@@ -697,21 +759,21 @@
         function renderChatHistory() {
             const historyDiv = document.getElementById('chatHistory');
             historyDiv.innerHTML = '';
-            
-            const chatIds = Object.keys(allChats).sort((a, b) => 
+
+            const chatIds = Object.keys(allChats).sort((a, b) =>
                 allChats[b].timestamp - allChats[a].timestamp
             );
-            
+
             chatIds.forEach(chatId => {
                 const chat = allChats[chatId];
                 const item = document.createElement('div');
                 item.className = 'chat-history-item' + (chatId === currentChatId ? ' active' : '');
-                
+
                 const titleWrapper = document.createElement('div');
                 titleWrapper.className = 'chat-title-wrapper';
                 titleWrapper.textContent = chat.title;
                 titleWrapper.onclick = () => loadChat(chatId);
-                
+
                 const deleteBtn = document.createElement('button');
                 deleteBtn.className = 'delete-chat-button';
                 deleteBtn.innerHTML = '×';
@@ -721,7 +783,7 @@
                     e.preventDefault();
                     deleteChat(chatId);
                 });
-                
+
                 item.appendChild(titleWrapper);
                 item.appendChild(deleteBtn);
                 historyDiv.appendChild(item);
@@ -764,19 +826,20 @@
         }
 
         // Initialize on page load
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             // New chat button handler
             const newChatBtn = document.getElementById('newChatButton');
             if (newChatBtn) {
-                newChatBtn.addEventListener('click', function() {
+                newChatBtn.addEventListener('click', function () {
                     console.log('New chat button clicked');
                     createNewChat();
                 });
             }
-            
+
             initializeChatSessions();
             messageInput.focus();
         });
     </script>
 </body>
+
 </html>

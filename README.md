@@ -16,6 +16,8 @@ description: A production-ready LangChain agent in Python using Azure OpenAI Res
 
 # LangChain Agent with Model Context Protocol (MCP)
 
+![LangChain MCP Agent](images/app-image.png)
+
 [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/Azure-Samples/langchain-agent-python)
 
 This sample demonstrates a **production-ready LangChain agent** that uses the **OpenAI Responses API** with **Model Context Protocol (MCP)** for tool integration. The agent uses **Azure OpenAI GPT-5-mini** with **Entra ID authentication**, **PostgreSQL with pgvector** for semantic search, and is deployed as microservices on **Azure Container Apps**.
@@ -130,16 +132,15 @@ echo "MCP_SERVER_URL=http://localhost:8000" >> .env.local
 
 # 3. Start MCP server (Terminal 1)
 cd mcp
-export $(cat ../.env.local | grep -v '^#' | grep '=' | xargs)
-python3 app.py
+source ../.env.local
+python app.py
 
 # 4. Start agent server (Terminal 2)
 cd agent
-export $(cat ../.env.local | grep -v '^#' | grep '=' | xargs)
-export PORT=8080
-python3 app.py
+source ../.env.local
+PORT=8001 python app.py
 
-# 5. Open browser to http://localhost:8080
+# 5. Open browser to http://localhost:8001
 ```
 
 **Option 2: Full Local Stack**
@@ -148,30 +149,43 @@ python3 app.py
 # 1. Start PostgreSQL with pgvector
 docker-compose up -d
 
-# 2. Initialize database
-cd data && python generate_database.py
-
-# 3. Configure environment
+# 2. Configure environment
 cp .env.example .env.local
+# Edit .env.local with your Azure OpenAI credentials
 
-# 4. Start MCP server (Terminal 1)
+# 3. Initialize database
+cd data
+source ../.env.local
+python generate_database.py
+
+# 4. Regenerate embeddings (required if your Azure OpenAI uses a different embedding model)
+python regenerate_embeddings.py
+
+# 5. Start MCP server (Terminal 1)
 cd mcp
-export $(cat ../.env.local | grep -v '^#' | grep '=' | xargs)
-python3 app.py
+source ../.env.local
+python app.py
 
-# 5. Start agent server (Terminal 2)
+# 6. Start agent server (Terminal 2)
 cd agent
-export $(cat ../.env.local | grep -v '^#' | grep '=' | xargs)
-export PORT=8080
-python3 app.py
+source ../.env.local
+PORT=8001 python app.py
 
-# 6. Open browser to http://localhost:8080
+# 7. Open browser to http://localhost:8001
 ```
+
+**VS Code Tasks:**
+
+The project includes pre-configured VS Code tasks. Press `Cmd+Shift+P` (Mac) or `Ctrl+Shift+P` (Windows/Linux) and select "Tasks: Run Task" to see available tasks:
+- Start MCP Server
+- Start Agent
+- Start PostgreSQL (Docker)
+- Initialize Database
 
 **Ports:**
 
 - MCP Server: `8000`
-- Agent/Chat UI: `8080` (set via `PORT` environment variable)
+- Agent/Chat UI: `8001` (set via `PORT` environment variable)
 
 ## Project Structure
 
@@ -286,15 +300,20 @@ The sample uses **Azure PostgreSQL Flexible Server** with **pgvector** for seman
 
 - 10-table retail schema (products, orders, customers, inventory, etc.)
 - Vector embeddings for semantic search using Azure OpenAI
-- Pre-populated Zava DIY product catalog with ~500 products
+- Pre-populated Zava DIY product catalog with ~424 products
 - Natural language queries like "waterproof outdoor electrical boxes"
+
+**Data Files Included:**
+
+This repository includes pre-generated data files in the `data/` folder, so you don't need to download anything:
+- `products_pregenerated.json` - 424 products with pre-computed embeddings
+- `customers_pregenerated.json` - 500 sample customers
+- `orders_pregenerated.json` - 2000 sample orders
 
 **Setup:**
 
 - Production: Automatically provisioned during `azd up`
 - Local: Run `docker-compose up -d` then `python data/generate_database.py`
-
-**Data Source:** Product data and embeddings from [Microsoft AI Tour WRK540](https://github.com/microsoft/aitour26-WRK540-unlock-your-agents-potential-with-model-context-protocol/tree/main/data/database)
 
 ## Customization
 
